@@ -29,4 +29,20 @@ th { background-color: #f8f9fa; font-weight: 600; }
 .resultado-item:hover, .resultado-item.selecionado { background-color: #eaf2f8; }
 .resultado-item small { color: #555; }
 #carrinho-lista, .transacao-item-lista { list-style-type: none; padding: 0; margin: 0; flex-grow: 1; }
-#carrinho-lista li { display
+#carrinho-lista li { display: flex; justify-content: space-between; padding: 8px 0; }
+.transacao-item-lista { padding-left: 15px !important; }
+.carrinho-total { font-size: 1.2em; text-align: right; padding: 10px 0; }
+.edit-btn, .delete-btn { font-size: 12px; padding: 6px 10px; cursor: pointer; border: none; border-radius: 5px; color: white; margin-left: 5px; }
+.edit-btn { background-color: #3498db; }
+.delete-btn { background-color: #e74c3c; }
+.tipo-venda, .tipo-aporte { color: #27ae60; font-weight: bold; }
+.tipo-custo { color: #e74c3c; font-weight: bold; }
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+.modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 12px; }
+.modal-content form { display: flex; flex-direction: column; }
+.modal-content label { margin-top: 10px; margin-bottom: 5px; font-weight: bold; }
+.close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+.close-btn:hover, .close-btn:focus { color: black; }
+@media (max-width: 768px) {
+    .venda-grid { grid-template-columns: 1fr; }
+}
