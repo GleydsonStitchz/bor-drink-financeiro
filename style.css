@@ -32,7 +32,6 @@ th { background-color: #f8f9fa; font-weight: 600; }
 /* --- Estilos para Responsividade da Tabela --- */
 .table-container {
     width: 100%;
-    overflow-x: auto; /* Adiciona a barra de rolagem horizontal quando necessário */
+    overflow-x: auto; /* A MÁGICA ACONTECE AQUI */
     -webkit-overflow-scrolling: touch; /* Melhora a experiência de rolagem em iOS */
 }
-
