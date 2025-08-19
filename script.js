@@ -1,207 +1,334 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const DB_KEY = 'borDrinkPDV';
 
-    const STORAGE_KEY = 'borDrinkFinanceiro';
-
-    // --- SELEÇÃO DOS ELEMENTOS DO DOM ---
-    const tipoRegistroSelect = document.getElementById('tipo-registro');
-    const dataInput = document.getElementById('data-input');
-    const aporteSocioDiv = document.getElementById('aporte-socio-div');
-    const registroForm = document.getElementById('registro-form');
-    const descricaoInput = document.getElementById('descricao-input');
-    const valorInput = document.getElementById('valor-input');
-    const socioSelect = document.getElementById('socio-select');
-    const transacoesBody = document.getElementById('transacoes-body');
-    const totalInvestidoEuSpan = document.getElementById('total-investido-eu');
-    const totalInvestidoVovoSpan = document.getElementById('total-investido-vovo');
-    const mesSelect = document.getElementById('mes-select');
-    const anoSelect = document.getElementById('ano-select');
-    const fechamentoBtn = document.getElementById('fechamento-btn');
-    const fechamentoResultado = document.getElementById('fechamento-resultado');
-    const exportBtn = document.getElementById('export-btn');
-    const importBtn = document.getElementById('import-btn');
-    const importFileInput = document.getElementById('import-file-input');
-    
-    // --- FUNÇÕES DE DADOS (localStorage) ---
-    const carregarTransacoes = () => JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    const salvarTransacoes = (transacoes) => localStorage.setItem(STORAGE_KEY, JSON.stringify(transacoes));
-
-    // --- FUNÇÕES DE RENDERIZAÇÃO E ATUALIZAÇÃO ---
-    const formatarMoeda = (valor) => `R$ ${valor.toFixed(2).replace('.', ',')}`;
-    const formatarData = (dataISO) => new Date(dataISO).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-
-    const renderizarTudo = () => {
-        renderizarTransacoes();
-        atualizarPainelSocios();
-    }
-
-    const atualizarPainelSocios = () => {
-        const transacoes = carregarTransacoes();
-        const aportesEu = transacoes.filter(t => t.tipo === 'aporte' && t.socio === 'eu').reduce((acc, t) => acc + t.valor, 0);
-        const aportesVovo = transacoes.filter(t => t.tipo === 'aporte' && t.socio === 'vovo').reduce((acc, t) => acc + t.valor, 0);
-        totalInvestidoEuSpan.textContent = formatarMoeda(aportesEu);
-        totalInvestidoVovoSpan.textContent = formatarMoeda(aportesVovo);
+    // --- ESTRUTURA DE DADOS E INICIALIZAÇÃO ---
+    let db = {
+        produtos: [],
+        vendedores: [],
+        transacoes: []
     };
 
-    const renderizarTransacoes = () => {
-        transacoesBody.innerHTML = '';
-        const transacoes = carregarTransacoes();
-        transacoes.sort((a, b) => new Date(b.data) - new Date(a.data));
-        transacoes.forEach(t => {
+    let carrinhoAtual = [];
+    let produtoSelecionadoParaVenda = null;
+
+    const carregarDB = () => {
+        const data = localStorage.getItem(DB_KEY);
+        if (data) {
+            db = JSON.parse(data);
+        }
+    };
+
+    const salvarDB = () => {
+        localStorage.setItem(DB_KEY, JSON.stringify(db));
+    };
+
+    // --- SELEÇÃO DOS ELEMENTOS DO DOM ---
+    // Formulários
+    const produtoForm = document.getElementById('produto-form');
+    const vendedorForm = document.getElementById('vendedor-form');
+    // Inputs de Produto
+    const produtoCodigoInput = document.getElementById('produto-codigo-input');
+    const produtoNomeInput = document.getElementById('produto-nome-input');
+    const produtoPrecoInput = document.getElementById('produto-preco-input');
+    const produtoEstoqueInput = document.getElementById('produto-estoque-input');
+    // Inputs de Vendedor
+    const vendedorNomeInput = document.getElementById('vendedor-nome-input');
+    // Tabelas
+    const produtosBody = document.getElementById('produtos-body');
+    const vendedoresBody = document.getElementById('vendedores-body');
+    const transacoesBody = document.getElementById('transacoes-body');
+    // Lógica de Vendas
+    const produtoBuscaInput = document.getElementById('produto-busca-input');
+    const produtoBuscaResultados = document.getElementById('produto-busca-resultados');
+    const quantidadeVendaInput = document.getElementById('quantidade-venda-input');
+    const addItemCarrinhoBtn = document.getElementById('add-item-carrinho-btn');
+    const carrinhoLista = document.getElementById('carrinho-lista');
+    const carrinhoTotalValor = document.getElementById('carrinho-total-valor');
+    const vendedorSelectVenda = document.getElementById('vendedor-select-venda');
+    const finalizarVendaBtn = document.getElementById('finalizar-venda-btn');
+    // Modais
+    const editProdutoModal = document.getElementById('edit-produto-modal');
+    const editVendedorModal = document.getElementById('edit-vendedor-modal');
+    const editProdutoForm = document.getElementById('edit-produto-form');
+    const editVendedorForm = document.getElementById('edit-vendedor-form');
+
+    // --- FUNÇÕES GERAIS ---
+    const formatarMoeda = (valor) => `R$ ${valor.toFixed(2).replace('.', ',')}`;
+
+    const renderizarTudo = () => {
+        renderizarProdutos();
+        renderizarVendedores();
+        renderizarDropdownVendedores();
+        renderizarTransacoes();
+    };
+    
+    // --- LÓGICA DE GERENCIAMENTO DE PRODUTOS ---
+    const renderizarProdutos = () => {
+        produtosBody.innerHTML = '';
+        db.produtos.forEach(p => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td class="tipo-${t.tipo}">${t.tipo.charAt(0).toUpperCase() + t.tipo.slice(1)} ${t.socio ? `(${t.socio})` : ''}</td>
-                <td>${t.descricao}</td>
-                <td>${formatarMoeda(t.valor)}</td>
-                <td>${formatarData(t.data)}</td>
-                <td><button class="delete-btn" data-id="${t.id}">X</button></td>
+                <td>${p.codigo}</td>
+                <td>${p.nome}</td>
+                <td>${formatarMoeda(p.preco)}</td>
+                <td>${p.estoque}</td>
+                <td>
+                    <button class="edit-btn" data-id="${p.id}">Editar</button>
+                    <button class="delete-btn" data-id="${p.id}">Excluir</button>
+                </td>
+            `;
+            produtosBody.appendChild(tr);
+        });
+    };
+
+    produtoForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const novoProduto = {
+            id: Date.now(),
+            codigo: produtoCodigoInput.value.toUpperCase(),
+            nome: produtoNomeInput.value,
+            preco: parseFloat(produtoPrecoInput.value),
+            estoque: parseInt(produtoEstoqueInput.value)
+        };
+        db.produtos.push(novoProduto);
+        salvarDB();
+        renderizarProdutos();
+        produtoForm.reset();
+    });
+
+    produtosBody.addEventListener('click', (e) => {
+        const id = parseInt(e.target.dataset.id);
+        if (e.target.classList.contains('delete-btn')) {
+            if (confirm('Tem certeza que deseja excluir este produto?')) {
+                db.produtos = db.produtos.filter(p => p.id !== id);
+                salvarDB();
+                renderizarProdutos();
+            }
+        }
+        if (e.target.classList.contains('edit-btn')) {
+            const produto = db.produtos.find(p => p.id === id);
+            document.getElementById('edit-produto-id').value = produto.id;
+            document.getElementById('edit-produto-codigo').value = produto.codigo;
+            document.getElementById('edit-produto-nome').value = produto.nome;
+            document.getElementById('edit-produto-preco').value = produto.preco;
+            document.getElementById('edit-produto-estoque').value = produto.estoque;
+            editProdutoModal.style.display = 'block';
+        }
+    });
+
+    editProdutoForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = parseInt(document.getElementById('edit-produto-id').value);
+        const index = db.produtos.findIndex(p => p.id === id);
+        db.produtos[index] = {
+            id: id,
+            codigo: document.getElementById('edit-produto-codigo').value.toUpperCase(),
+            nome: document.getElementById('edit-produto-nome').value,
+            preco: parseFloat(document.getElementById('edit-produto-preco').value),
+            estoque: parseInt(document.getElementById('edit-produto-estoque').value)
+        };
+        salvarDB();
+        renderizarProdutos();
+        editProdutoModal.style.display = 'none';
+    });
+    
+    // --- LÓGICA DE GERENCIAMENTO DE VENDEDORES ---
+    const renderizarVendedores = () => {
+        vendedoresBody.innerHTML = '';
+        db.vendedores.forEach(v => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${v.nome}</td>
+                <td>
+                    <button class="edit-btn" data-id="${v.id}">Editar</button>
+                    <button class="delete-btn" data-id="${v.id}">Excluir</button>
+                </td>
+            `;
+            vendedoresBody.appendChild(tr);
+        });
+    };
+
+    const renderizarDropdownVendedores = () => {
+        vendedorSelectVenda.innerHTML = '<option value="">Selecione um vendedor</option>';
+        db.vendedores.forEach(v => {
+            vendedorSelectVenda.innerHTML += `<option value="${v.nome}">${v.nome}</option>`;
+        });
+    };
+
+    vendedorForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const novoVendedor = { id: Date.now(), nome: vendedorNomeInput.value };
+        db.vendedores.push(novoVendedor);
+        salvarDB();
+        renderizarVendedores();
+        renderizarDropdownVendedores();
+        vendedorForm.reset();
+    });
+
+    vendedoresBody.addEventListener('click', (e) => {
+        const id = parseInt(e.target.dataset.id);
+        if (e.target.classList.contains('delete-btn')) {
+            if (confirm('Tem certeza que deseja excluir este vendedor?')) {
+                db.vendedores = db.vendedores.filter(v => v.id !== id);
+                salvarDB();
+                renderizarVendedores();
+                renderizarDropdownVendedores();
+            }
+        }
+         if (e.target.classList.contains('edit-btn')) {
+            const vendedor = db.vendedores.find(v => v.id === id);
+            document.getElementById('edit-vendedor-id').value = vendedor.id;
+            document.getElementById('edit-vendedor-nome').value = vendedor.nome;
+            editVendedorModal.style.display = 'block';
+        }
+    });
+
+    editVendedorForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = parseInt(document.getElementById('edit-vendedor-id').value);
+        const index = db.vendedores.findIndex(v => v.id === id);
+        db.vendedores[index].nome = document.getElementById('edit-vendedor-nome').value;
+        salvarDB();
+        renderizarVendedores();
+        renderizarDropdownVendedores();
+        editVendedorModal.style.display = 'none';
+    });
+
+
+    // --- LÓGICA DO CARRINHO E REGISTRO DE VENDAS ---
+    produtoBuscaInput.addEventListener('input', () => {
+        const termo = produtoBuscaInput.value.toLowerCase();
+        produtoBuscaResultados.innerHTML = '';
+        if (termo.length < 1) return;
+
+        const resultados = db.produtos.filter(p => p.nome.toLowerCase().includes(termo) || p.codigo.toLowerCase().includes(termo));
+        
+        resultados.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'resultado-item';
+            div.innerHTML = `<strong>${p.codigo}</strong> - ${p.nome} <small>(${formatarMoeda(p.preco)})</small>`;
+            div.onclick = () => {
+                produtoSelecionadoParaVenda = p;
+                produtoBuscaInput.value = `${p.codigo} - ${p.nome}`;
+                produtoBuscaResultados.innerHTML = '';
+            };
+            produtoBuscaResultados.appendChild(div);
+        });
+    });
+
+    const renderizarCarrinho = () => {
+        carrinhoLista.innerHTML = '';
+        let total = 0;
+        carrinhoAtual.forEach((item, index) => {
+            const li = document.createElement('li');
+            const itemTotal = item.preco * item.quantidade;
+            li.innerHTML = `
+                <span>${item.quantidade}x ${item.nome}</span>
+                <span>${formatarMoeda(itemTotal)}</span>
+            `;
+            carrinhoLista.appendChild(li);
+            total += itemTotal;
+        });
+        carrinhoTotalValor.textContent = formatarMoeda(total);
+    };
+
+    addItemCarrinhoBtn.addEventListener('click', () => {
+        if (!produtoSelecionadoParaVenda) {
+            alert('Por favor, selecione um produto da busca.');
+            return;
+        }
+        const quantidade = parseInt(quantidadeVendaInput.value);
+        if (quantidade > produtoSelecionadoParaVenda.estoque) {
+            alert(`Estoque insuficiente! Apenas ${produtoSelecionadoParaVenda.estoque} unidades disponíveis.`);
+            return;
+        }
+
+        carrinhoAtual.push({
+            id: produtoSelecionadoParaVenda.id,
+            nome: produtoSelecionadoParaVenda.nome,
+            preco: produtoSelecionadoParaVenda.preco,
+            quantidade: quantidade
+        });
+        
+        renderizarCarrinho();
+        // Limpar campos para próximo item
+        produtoSelecionadoParaVenda = null;
+        produtoBuscaInput.value = '';
+        quantidadeVendaInput.value = 1;
+    });
+
+    finalizarVendaBtn.addEventListener('click', () => {
+        if (carrinhoAtual.length === 0) {
+            alert('Adicione pelo menos um item à venda.');
+            return;
+        }
+        if (!vendedorSelectVenda.value) {
+            alert('Selecione um vendedor.');
+            return;
+        }
+
+        const totalVenda = carrinhoAtual.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+
+        // Dar baixa no estoque
+        carrinhoAtual.forEach(itemCarrinho => {
+            const indexProduto = db.produtos.findIndex(p => p.id === itemCarrinho.id);
+            db.produtos[indexProduto].estoque -= itemCarrinho.quantidade;
+        });
+
+        const novaTransacao = {
+            id: 'V-' + Date.now(),
+            tipo: 'venda',
+            vendedor: vendedorSelectVenda.value,
+            total: totalVenda,
+            data: new Date().toISOString(),
+            items: carrinhoAtual
+        };
+
+        db.transacoes.push(novaTransacao);
+        salvarDB();
+        
+        // Limpar tudo para a próxima venda
+        carrinhoAtual = [];
+        renderizarCarrinho();
+        vendedorSelectVenda.value = '';
+        
+        renderizarTudo(); // Atualiza todas as tabelas (estoque, histórico)
+        alert('Venda registrada com sucesso!');
+    });
+
+    // --- LÓGICA DE HISTÓRICO ---
+    const renderizarTransacoes = () => {
+        transacoesBody.innerHTML = '';
+        db.transacoes.sort((a, b) => new Date(b.data) - new Date(a.data));
+        db.transacoes.forEach(t => {
+            const tr = document.createElement('tr');
+            const itensHtml = t.items.map(item => `<li>${item.quantidade}x ${item.nome}</li>`).join('');
+            tr.innerHTML = `
+                <td>${t.id}</td>
+                <td><ul>${itensHtml}</ul></td>
+                <td>${formatarMoeda(t.total)}</td>
+                <td>${t.vendedor}</td>
+                <td>${new Date(t.data).toLocaleDateString('pt-BR')}</td>
             `;
             transacoesBody.appendChild(tr);
         });
     };
 
-    // --- FUNÇÃO DE FECHAMENTO MENSAL (ATUALIZADA) ---
-    const gerarFechamento = () => {
-        const mes = parseInt(mesSelect.value);
-        const ano = parseInt(anoSelect.value);
-        const transacoes = carregarTransacoes();
-        const transacoesDoMes = transacoes.filter(t => { const data = new Date(t.data); return data.getUTCMonth() === mes && data.getUTCFullYear() === ano; });
-
-        const vendasDoMes = transacoesDoMes.filter(t => t.tipo === 'venda');
-        const custosDoMes = transacoesDoMes.filter(t => t.tipo === 'custo');
-
-        const faturamento = vendasDoMes.reduce((acc, t) => acc + t.valor, 0);
-        const custos = custosDoMes.reduce((acc, t) => acc + t.valor, 0);
-        const lucroBruto = faturamento - custos;
-
-        const dataFimDoMes = new Date(Date.UTC(ano, mes + 1, 0));
-        const aportesAteOMes = transacoes.filter(t => t.tipo === 'aporte' && new Date(t.data) <= dataFimDoMes);
-        const totalInvestidoEu = aportesAteOMes.filter(t => t.socio === 'eu').reduce((acc, t) => acc + t.valor, 0);
-        const totalInvestidoVovo = aportesAteOMes.filter(t => t.socio === 'vovo').reduce((acc, t) => acc + t.valor, 0);
-        const capitalTotal = totalInvestidoEu + totalInvestidoVovo;
-        const participacaoEu = capitalTotal > 0 ? (totalInvestidoEu / capitalTotal) : 0;
-        const participacaoVovo = capitalTotal > 0 ? (totalInvestidoVovo / capitalTotal) : 0;
-        const lucroEu = lucroBruto > 0 ? lucroBruto * participacaoEu : 0;
-        const lucroVovo = lucroBruto > 0 ? lucroBruto * participacaoVovo : 0;
-        const prejuizo = lucroBruto < 0 ? lucroBruto : 0;
-
-        let relatorioHTML = `<h3>Fechamento de ${mesSelect.options[mesSelect.selectedIndex].text} de ${ano}</h3>`;
-
-        // Detalhamento de Vendas
-        relatorioHTML += `<h4>Detalhes de Vendas (${formatarMoeda(faturamento)})</h4>`;
-        if (vendasDoMes.length > 0) {
-            relatorioHTML += '<ul>';
-            vendasDoMes.forEach(v => {
-                relatorioHTML += `<li>[${formatarData(v.data)}] ${v.descricao}: <strong>${formatarMoeda(v.valor)}</strong></li>`;
-            });
-            relatorioHTML += '</ul>';
-        } else {
-            relatorioHTML += '<p>Nenhuma venda registrada neste mês.</p>';
-        }
-
-        // Detalhamento de Custos
-        relatorioHTML += `<h4>Detalhes de Custos (${formatarMoeda(custos)})</h4>`;
-        if (custosDoMes.length > 0) {
-            relatorioHTML += '<ul>';
-            custosDoMes.forEach(c => {
-                relatorioHTML += `<li>[${formatarData(c.data)}] ${c.descricao}: <strong>${formatarMoeda(c.valor)}</strong></li>`;
-            });
-            relatorioHTML += '</ul>';
-        } else {
-            relatorioHTML += '<p>Nenhum custo registrado neste mês.</p>';
-        }
-
-        // Resumo Financeiro e Divisão
-        relatorioHTML += `<hr><p><strong>Lucro/Prejuízo do Mês:</strong> <strong class="${lucroBruto >= 0 ? 'tipo-venda' : 'tipo-custo'}">${formatarMoeda(lucroBruto)}</strong></p><hr>
-        <h4>Divisão do Lucro Baseada no Capital Investido:</h4>
-        <p>Sua Participação (${(participacaoEu * 100).toFixed(2)}%): <strong>${formatarMoeda(lucroEu)}</strong></p>
-        <p>Participação da Vovó (${(participacaoVovo * 100).toFixed(2)}%): <strong>${formatarMoeda(lucroVovo)}</strong></p>
-        ${prejuizo < 0 ? `<p class="tipo-custo">Atenção: O mês fechou com prejuízo de ${formatarMoeda(prejuizo)}.</p>` : ''}`;
-        
-        fechamentoResultado.innerHTML = relatorioHTML;
-    };
-    
-    // --- EVENT LISTENERS ---
-    registroForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const dataSelecionada = new Date(dataInput.value + 'T12:00:00');
-        const novaTransacao = {
-            id: Date.now(),
-            tipo: tipoRegistroSelect.value,
-            descricao: descricaoInput.value,
-            valor: parseFloat(valorInput.value),
-            data: dataSelecionada.toISOString()
-        };
-        if (novaTransacao.tipo === 'aporte') {
-            novaTransacao.socio = socioSelect.value;
-        }
-        const transacoes = carregarTransacoes();
-        transacoes.push(novaTransacao);
-        salvarTransacoes(transacoes);
-        registroForm.reset();
-        setDataParaHoje();
-        aporteSocioDiv.classList.add('hidden');
-        renderizarTudo();
-    });
-    // --- Restante do código (é o mesmo de antes, cole-o aqui) ---
-    transacoesBody.addEventListener('click', (e) => {
-        if (e.target.classList.contains('delete-btn')) {
-            const idParaDeletar = parseInt(e.target.getAttribute('data-id'));
-            let transacoes = carregarTransacoes();
-           
-            transacoes = transacoes.filter(t => t.id !== idParaDeletar);
-            salvarTransacoes(transacoes);
-            renderizarTudo();
+    // --- Fechando Modais ---
+    document.querySelectorAll('.close-btn').forEach(btn => {
+        btn.onclick = () => {
+            editProdutoModal.style.display = 'none';
+            editVendedorModal.style.display = 'none';
         }
     });
-    tipoRegistroSelect.addEventListener('change', () => {
-        aporteSocioDiv.classList.toggle('hidden', tipoRegistroSelect.value !== 'aporte');
-    });
-    const popularFiltrosDeData = () => {
-        const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-        meses.forEach((mes, index) => { mesSelect.innerHTML += `<option value="${index}">${mes}</option>`; });
-        const anoAtual = new Date().getFullYear();
-        for (let ano = anoAtual; ano >= 2022; ano--) { anoSelect.innerHTML += `<option value="${ano}">${ano}</option>`;}
-        mesSelect.value = new Date().getMonth();
-        anoSelect.value = anoAtual;
-    };
-    const setDataParaHoje = () => {
-        const hoje = new Date();
-        dataInput.value = hoje.toISOString().split('T')[0];
-    };
-    const exportarDados = () => {
-        const transacoes = localStorage.getItem(STORAGE_KEY);
-        if (!transacoes || transacoes === '[]') { alert('Não há dados para exportar!'); return; }
-        const blob = new Blob([transacoes], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const hoje = new Date().toISOString().split('T')[0];
-        a.href = url; a.download = `backup-bor-drink-${hoje}.json`;
-        document.body.appendChild(a); a.click();
-        document.body.removeChild(a); URL.revokeObjectURL(url);
-    };
-    const importarDados = (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const dados = JSON.parse(e.target.result);
-                if (!Array.isArray(dados)) throw new Error('Arquivo inválido.');
-                if (confirm('Atenção! Isso irá substituir TODOS os dados atuais. Deseja continuar?')) {
-                    salvarTransacoes(dados);
-                    location.reload(); 
-                }
-            } catch (error) { alert('Erro ao ler o arquivo.'); console.error(error); }
-        };
-        reader.readAsText(file);
-    };
-    fechamentoBtn.addEventListener('click', gerarFechamento);
-    exportBtn.addEventListener('click', exportarDados);
-    importBtn.addEventListener('click', () => importFileInput.click());
-    importFileInput.addEventListener('change', importarDados);
-    popularFiltrosDeData();
-    setDataParaHoje();
+    window.onclick = (event) => {
+        if (event.target == editProdutoModal || event.target == editVendedorModal) {
+            editProdutoModal.style.display = 'none';
+            editVendedorModal.style.display = 'none';
+        }
+    }
+
+    // --- INICIALIZAÇÃO GERAL ---
+    carregarDB();
     renderizarTudo();
 });
-
-
