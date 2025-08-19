@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bor Drink - Controle Financeiro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Painel Financeiro - Bor Drink 🍸</h1>
+
+        <div class="card summary-card">
+            <h2>Resumo dos Sócios</h2>
+            <div class="socios-info">
+                <div>
+                    <strong>Seu Investimento Total:</strong>
+                    <span id="total-investido-eu">R$ 0,00</span>
+                </div>
+                <div>
+                    <strong>Investimento Total da Vovó:</strong>
+                    <span id="total-investido-vovo">R$ 0,00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Fazer um Registro</h2>
+            <form id="registro-form">
+                <input type="date" id="data-input" required>
+                <select id="tipo-registro" required>
+                    <option value="venda">Registrar Venda</option>
+                    <option value="custo">Registrar Custo/Despesa</option>
+                    <option value="aporte">Registrar Aporte (Reinvestimento)</option>
+                </select>
+                <input type="text" id="descricao-input" placeholder="Descrição (Ex: Venda de 2 Cervejas)" required>
+                <input type="number" id="valor-input" placeholder="Valor (R$)" step="0.01" min="0" required>
+                <div id="aporte-socio-div" class="hidden">
+                    <label for="socio-select">Quem fez o aporte?</label>
+                    <select id="socio-select">
+                        <option value="eu">Eu</option>
+                        <option value="vovo">Vovó</option>
+                    </select>
+                </div>
+                <button type="submit">Adicionar Registro</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Gerenciamento de Dados</h2>
+            <div class="management-controls">
+                <button id="export-btn" class="btn-secondary">Exportar Dados (Backup)</button>
+                <button id="import-btn" class="btn-secondary">Importar Dados (Restaurar)</button>
+                <input type="file" id="import-file-input" class="hidden" accept=".json">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Histórico de Transações</h2>
+            <table id="transacoes-table">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                        <th>Valor</th>
+                        <th>Data</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="transacoes-body">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Fechamento Mensal</h2>
+            <p>No dia 5 (ou depois), selecione o mês anterior para fazer o fechamento.</p>
+            <div class="report-controls">
+                <select id="mes-select"></select>
+                <select id="ano-select"></select>
+                <button id="fechamento-btn">Gerar Fechamento</button>
+            </div>
+            <div id="fechamento-resultado">
+                </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
