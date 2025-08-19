@@ -147,10 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.classList.contains('delete-btn')) {
             const idParaDeletar = parseInt(e.target.getAttribute('data-id'));
             let transacoes = carregarTransacoes();
-            const transacaoRemovida = transacoes.find(t => t.id === idParaDeletar);
-            if (transacaoRemovida && transacaoRemovida.descricao === 'Investimento Inicial') {
-                alert('Não é possível remover o investimento inicial!'); return;
-            }
+           
             transacoes = transacoes.filter(t => t.id !== idParaDeletar);
             salvarTransacoes(transacoes);
             renderizarTudo();
@@ -206,4 +203,5 @@ document.addEventListener('DOMContentLoaded', () => {
     setDataParaHoje();
     renderizarTudo();
 });
+
 
