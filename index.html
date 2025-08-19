@@ -25,4 +25,123 @@
                 <div class="venda-coluna">
                     <h3>Itens na Venda Atual</h3>
                     <ul id="carrinho-lista"></ul>
-                    <div class="carrinho-
+                    <div class="carrinho-total">
+                        <strong>Total: <span id="carrinho-total-valor">R$ 0,00</span></strong>
+                    </div>
+                    <label for="vendedor-select-venda">Vendedor</label>
+                    <select id="vendedor-select-venda" required></select>
+                    <button id="finalizar-venda-btn" class="btn-principal">Finalizar Venda</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Registrar Outra Transação</h2>
+            <form id="outra-transacao-form">
+                <select id="tipo-outra-transacao" required>
+                    <option value="custo">Registrar Custo/Despesa</option>
+                    <option value="aporte">Registrar Aporte (Reinvestimento)</option>
+                </select>
+                <input type="text" id="outra-descricao-input" placeholder="Descrição (Ex: Compra de gelo)" required>
+                <input type="number" id="outra-valor-input" placeholder="Valor (R$)" step="0.01" min="0" required>
+                <div id="outra-aporte-socio-div" class="hidden">
+                    <label for="outra-socio-select">Quem fez o aporte?</label>
+                    <select id="outra-socio-select">
+                        <option value="Eu">Eu</option>
+                        <option value="Vovó">Vovó</option>
+                    </select>
+                </div>
+                <button type="submit">Adicionar Registro</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Gerenciar Produtos</h2>
+            <form id="produto-form">
+                <input type="text" id="produto-codigo-input" placeholder="Código (ex: WHC)" required>
+                <input type="text" id="produto-nome-input" placeholder="Nome do Produto" required>
+                <input type="number" id="produto-preco-input" placeholder="Preço (R$)" step="0.01" required>
+                <input type="number" id="produto-estoque-input" placeholder="Estoque Inicial" required>
+                <button type="submit">Adicionar Produto</button>
+            </form>
+            <div class="table-container">
+                <table id="produtos-table">
+                    <thead><tr><th>Código</th><th>Nome</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead>
+                    <tbody id="produtos-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Gerenciar Vendedores</h2>
+            <form id="vendedor-form">
+                <input type="text" id="vendedor-nome-input" placeholder="Nome do Vendedor" required>
+                <button type="submit">Adicionar Vendedor</button>
+            </form>
+            <div class="table-container">
+                <table id="vendedores-table">
+                    <thead><tr><th>Nome</th><th>Ações</th></tr></thead>
+                    <tbody id="vendedores-body"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Histórico de Transações</h2>
+             <div class="table-container">
+                <table id="transacoes-table">
+                    <thead><tr><th>Tipo</th><th>Detalhes</th><th>Valor</th><th>Sócio/Vendedor</th><th>Data</th><th>Ação</th></tr></thead>
+                    <tbody id="transacoes-body"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Fechamento Mensal (Resultados)</h2>
+            <div class="report-controls">
+                <select id="mes-select"></select>
+                <select id="ano-select"></select>
+                <button id="fechamento-btn" class="btn-principal">Gerar Fechamento</button>
+            </div>
+            <div id="fechamento-resultado"></div>
+        </div>
+
+        <div class="card">
+            <h2>Gerenciamento de Dados</h2>
+            <div class="management-controls">
+                <button id="export-btn" class="btn-secondary">Exportar Dados (Backup)</button>
+                <button id="import-btn" class="btn-secondary">Importar Dados (Restaurar)</button>
+                <input type="file" id="import-file-input" class="hidden" accept=".json">
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-produto-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Editar Produto</h2>
+            <form id="edit-produto-form">
+                <input type="hidden" id="edit-produto-id">
+                <label>Código:</label><input type="text" id="edit-produto-codigo" required>
+                <label>Nome:</label><input type="text" id="edit-produto-nome" required>
+                <label>Preço:</label><input type="number" id="edit-produto-preco" step="0.01" required>
+                <label>Estoque:</label><input type="number" id="edit-produto-estoque" required>
+                <button type="submit">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+    <div id="edit-vendedor-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Editar Vendedor</h2>
+            <form id="edit-vendedor-form">
+                <input type="hidden" id="edit-vendedor-id">
+                <label>Nome:</label><input type="text" id="edit-vendedor-nome" required>
+                <button type="submit">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
