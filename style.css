@@ -1,37 +1,48 @@
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: #f0f2f5;
-    color: #333;
-    padding: 20px 0;
-}
-.container { max-width: 850px; margin: 0 auto; padding: 10px; }
-h1, h2 { text-align: center; color: #1c2e4a; }
+/* Estilos Anteriores (com pequenas adaptações) */
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; color: #333; padding: 20px 0; }
+.container { max-width: 900px; margin: 0 auto; padding: 10px; }
+h1, h2, h3 { text-align: center; color: #1c2e4a; }
 .card { background-color: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07); margin-bottom: 25px; }
-.summary-card { background: linear-gradient(135deg, #4a69bd, #6a89cc); color: white; }
-.summary-card h2 { color: white; }
-.socios-info { display: flex; justify-content: space-around; text-align: center; font-size: 1.1em; }
-form { display: flex; flex-direction: column; gap: 15px; }
-input, select, button { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+form { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
+input, select, button { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+input { flex: 1; }
 button { background-color: #4a69bd; color: white; border: none; cursor: pointer; font-weight: bold; transition: background-color 0.3s; }
 button:hover { background-color: #3c5aa6; }
-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
-th { background-color: #f8f9fa; font-weight: 600; }
-.tipo-venda, .tipo-aporte { color: #27ae60; font-weight: bold; }
-.tipo-custo { color: #e74c3c; font-weight: bold; }
-.delete-btn { background-color: #c0392b; color: white; padding: 6px 10px; font-size: 12px; border: none; border-radius: 5px; cursor: pointer; }
-.report-controls { display: flex; gap: 10px; margin-bottom: 20px; }
-#fechamento-btn { background-color: #16a085; }
-#fechamento-btn:hover { background-color: #117a65; }
-#fechamento-resultado { margin-top: 20px; padding: 20px; background-color: #e8f6f3; border-left: 5px solid #16a085; border-radius: 5px; line-height: 1.6; }
-.management-controls { display: flex; gap: 15px; justify-content: center; }
+.btn-principal { background-color: #27ae60; }
+.btn-principal:hover { background-color: #229954; }
 .btn-secondary { background-color: #7f8c8d; }
 .btn-secondary:hover { background-color: #6c7a7b; }
 .hidden { display: none; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+th { background-color: #f8f9fa; font-weight: 600; }
+.table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.management-controls { display: flex; gap: 15px; justify-content: center; }
 
-/* --- Estilos para Responsividade da Tabela --- */
-.table-container {
-    width: 100%;
-    overflow-x: auto; /* A MÁGICA ACONTECE AQUI */
-    -webkit-overflow-scrolling: touch; /* Melhora a experiência de rolagem em iOS */
+/* --- NOVOS ESTILOS PARA O PDV --- */
+.venda-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+.venda-coluna { display: flex; flex-direction: column; gap: 15px; }
+#produto-busca-resultados { border: 1px solid #ddd; border-radius: 8px; max-height: 150px; overflow-y: auto; }
+.resultado-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+.resultado-item:last-child { border-bottom: none; }
+.resultado-item:hover, .resultado-item.selecionado { background-color: #eaf2f8; }
+.resultado-item small { color: #555; }
+#carrinho-lista { list-style-type: none; padding: 0; margin: 0; flex-grow: 1; }
+#carrinho-lista li { display: flex; justify-content: space-between; padding: 8px 0; }
+.carrinho-total { font-size: 1.2em; text-align: right; padding: 10px 0; }
+.edit-btn, .delete-btn { font-size: 12px; padding: 6px 10px; cursor: pointer; border: none; border-radius: 5px; color: white; margin-left: 5px; }
+.edit-btn { background-color: #3498db; }
+.delete-btn { background-color: #e74c3c; }
+
+/* --- NOVOS ESTILOS PARA OS MODAIS --- */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+.modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 12px; }
+.modal-content form { display: flex; flex-direction: column; }
+.modal-content label { margin-top: 10px; margin-bottom: 5px; font-weight: bold; }
+.close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+.close-btn:hover, .close-btn:focus { color: black; }
+
+/* Adaptação para telas pequenas */
+@media (max-width: 768px) {
+    .venda-grid { grid-template-columns: 1fr; }
 }
