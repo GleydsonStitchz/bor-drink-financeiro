@@ -28,3 +28,11 @@ th { background-color: #f8f9fa; font-weight: 600; }
 .btn-secondary { background-color: #7f8c8d; }
 .btn-secondary:hover { background-color: #6c7a7b; }
 .hidden { display: none; }
+
+/* --- Estilos para Responsividade da Tabela --- */
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* Adiciona a barra de rolagem horizontal quando necessário */
+    -webkit-overflow-scrolling: touch; /* Melhora a experiência de rolagem em iOS */
+}
+
