@@ -159,15 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
     tipoRegistroSelect.addEventListener('change', () => {
         aporteSocioDiv.classList.toggle('hidden', tipoRegistroSelect.value !== 'aporte');
     });
-    const inicializarDados = () => {
-        let transacoes = carregarTransacoes();
-        if (!transacoes.some(t => t.descricao === 'Investimento Inicial')) {
-            const dataInicial = new Date().toISOString();
-            transacoes.push({ id: Date.now(), tipo: 'aporte', socio: 'eu', descricao: 'Investimento Inicial', valor: 550, data: dataInicial });
-            transacoes.push({ id: Date.now() + 1, tipo: 'aporte', socio: 'vovo', descricao: 'Investimento Inicial', valor: 550, data: dataInicial });
-            salvarTransacoes(transacoes);
-        }
-    };
     const popularFiltrosDeData = () => {
         const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         meses.forEach((mes, index) => { mesSelect.innerHTML += `<option value="${index}">${mes}</option>`; });
@@ -211,8 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
     exportBtn.addEventListener('click', exportarDados);
     importBtn.addEventListener('click', () => importFileInput.click());
     importFileInput.addEventListener('change', importarDados);
-    inicializarDados();
     popularFiltrosDeData();
     setDataParaHoje();
     renderizarTudo();
 });
+
