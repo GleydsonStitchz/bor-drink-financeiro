@@ -346,4 +346,4 @@ document.addEventListener('DOMContentLoaded', () => {
     popularFiltrosDeData();
     setDateTimeAtual(vendaDataInput, vendaHorarioInput);
     setDateTimeAtual(outraDataInput, outraHorarioInput);
-});
+}); 
