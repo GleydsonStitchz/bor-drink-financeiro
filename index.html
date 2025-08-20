@@ -29,8 +29,24 @@
                         <strong>Total: <span id="carrinho-total-valor">R$ 0,00</span></strong>
                     </div>
                     
-                    <label for="venda-data-input">Data da Venda</label>
-                    <input type="date" id="venda-data-input" required>
+                    <div class="input-group-datetime">
+                        <div>
+                            <label for="venda-data-input">Data da Venda</label>
+                            <input type="date" id="venda-data-input" required>
+                        </div>
+                        <div>
+                            <label for="venda-horario-input">Horário</label>
+                            <input type="time" id="venda-horario-input" required>
+                        </div>
+                    </div>
+
+                    <label for="pagamento-select">Forma de Pagamento</label>
+                    <select id="pagamento-select" required>
+                        <option value="Dinheiro">Dinheiro</option>
+                        <option value="Pix">Pix</option>
+                        <option value="Cartão de Débito">Cartão de Débito</option>
+                        <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    </select>
 
                     <label for="vendedor-select-venda">Vendedor</label>
                     <select id="vendedor-select-venda" required></select>
@@ -38,7 +54,7 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="card">
             <h2>Registrar Outra Transação</h2>
             <form id="outra-transacao-form">
@@ -48,14 +64,26 @@
                 </select>
                 <input type="text" id="outra-descricao-input" placeholder="Descrição (Ex: Compra de gelo)" required>
                 <input type="number" id="outra-valor-input" placeholder="Valor (R$)" step="0.01" min="0" required>
-                <div id="outra-aporte-socio-div" class="hidden">
+                
+                <div class="input-group-datetime full-width">
+                    <div>
+                        <label for="outra-data-input">Data</label>
+                        <input type="date" id="outra-data-input" required>
+                    </div>
+                    <div>
+                        <label for="outra-horario-input">Horário</label>
+                        <input type="time" id="outra-horario-input" required>
+                    </div>
+                </div>
+
+                <div id="outra-aporte-socio-div" class="hidden full-width">
                     <label for="outra-socio-select">Quem fez o aporte?</label>
                     <select id="outra-socio-select">
                         <option value="Eu">Eu</option>
                         <option value="Vovó">Vovó</option>
                     </select>
                 </div>
-                <button type="submit">Adicionar Registro</button>
+                <button type="submit" class="full-width">Adicionar Registro</button>
             </form>
         </div>
 
@@ -75,7 +103,6 @@
                 </table>
             </div>
         </div>
-
         <div class="card">
             <h2>Gerenciar Vendedores</h2>
             <form id="vendedor-form">
@@ -89,17 +116,15 @@
                 </table>
             </div>
         </div>
-        
         <div class="card">
             <h2>Histórico de Transações</h2>
              <div class="table-container">
                 <table id="transacoes-table">
-                    <thead><tr><th>Tipo</th><th>Detalhes</th><th>Valor</th><th>Sócio/Vendedor</th><th>Data</th><th>Ação</th></tr></thead>
+                    <thead><tr><th>Tipo</th><th>Detalhes</th><th>Valor</th><th>Responsável/Pgto.</th><th>Data e Hora</th><th>Ação</th></tr></thead>
                     <tbody id="transacoes-body"></tbody>
                 </table>
             </div>
         </div>
-        
         <div class="card">
             <h2>Fechamento Mensal (Resultados)</h2>
             <div class="report-controls">
@@ -109,7 +134,6 @@
             </div>
             <div id="fechamento-resultado"></div>
         </div>
-
         <div class="card">
             <h2>Gerenciamento de Dados</h2>
             <div class="management-controls">
