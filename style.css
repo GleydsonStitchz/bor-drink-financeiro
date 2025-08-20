@@ -3,8 +3,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helve
 h1, h2, h3 { text-align: center; color: #1c2e4a; }
 .card { background-color: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07); margin-bottom: 25px; }
 form { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
-input, select, button { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-input { flex: 1; }
+input, select, button {
+    width: 100%; /* GARANTE QUE OCUPEM TODA A LARGURA DISPONÍVEL */
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
 button { background-color: #4a69bd; color: white; border: none; cursor: pointer; font-weight: bold; transition: background-color 0.3s; }
 button:hover { background-color: #3c5aa6; }
 .btn-principal { background-color: #27ae60; }
@@ -46,3 +52,4 @@ th { background-color: #f8f9fa; font-weight: 600; }
 @media (max-width: 768px) {
     .venda-grid { grid-template-columns: 1fr; }
 }
+
