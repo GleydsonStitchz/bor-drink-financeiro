@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pagamentoSelect = document.getElementById('pagamento-select');
     const outraDataInput = document.getElementById('outra-data-input');
     const outraHorarioInput = document.getElementById('outra-horario-input');
-    // (O resto dos seletores continua o mesmo)
     const produtoForm = document.getElementById('produto-form');
     const vendedorForm = document.getElementById('vendedor-form');
     const outraTransacaoForm = document.getElementById('outra-transacao-form');
@@ -56,9 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- FUNÇÕES GERAIS ---
     const formatarMoeda = (valor) => `R$ ${valor.toFixed(2).replace('.', ',')}`;
+    const formatarData = (dataISO) => new Date(dataISO).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
     const formatarDataHora = (dataISO) => {
         const data = new Date(dataISO);
-        return data.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) + ' ' + data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+        return formatarData(dataISO) + ' ' + data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
     };
     const setDateTimeAtual = (dateEl, timeEl) => {
         const agora = new Date();
@@ -73,39 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarTransacoes();
     };
     
-    // --- LÓGICA DO CARRINHO E VENDA ATUALIZADA ---
-    finalizarVendaBtn.addEventListener('click', () => {
-        if (carrinhoAtual.length === 0) { alert('Adicione itens à venda.'); return; }
-        if (!vendedorSelectVenda.value) { alert('Selecione um vendedor.'); return; }
-        if (!vendaDataInput.value || !vendaHorarioInput.value) { alert('Selecione a data e o horário da venda.'); return; }
-
-        carrinhoAtual.forEach(itemCarrinho => {
-            const indexProduto = db.produtos.findIndex(p => p.id === itemCarrinho.id);
-            if (indexProduto !== -1) { db.produtos[indexProduto].estoque -= itemCarrinho.quantidade; }
-        });
-        
-        const dataCompleta = new Date(`${vendaDataInput.value}T${vendaHorarioInput.value}`);
-
-        db.transacoes.push({
-            id: 'V-' + Date.now(),
-            tipo: 'venda',
-            vendedor: vendedorSelectVenda.value,
-            pagamento: pagamentoSelect.value, // SALVA A FORMA DE PAGAMENTO
-            total: carrinhoAtual.reduce((acc, item) => acc + (item.preco * item.quantidade), 0),
-            data: dataCompleta.toISOString(),
-            items: carrinhoAtual
-        });
-
-        salvarDB();
-        carrinhoAtual = [];
-        renderizarCarrinho();
-        vendedorSelectVenda.value = '';
-        setDateTimeAtual(vendaDataInput, vendaHorarioInput);
-        renderizarTudo();
-        alert('Venda registrada com sucesso!');
-    });
-
-    // --- LÓGICA PARA CUSTOS E APORTES ATUALIZADA ---
+    // --- LÓGICA DE CUSTOS E APORTES (BUG CORRIGIDO) ---
     tipoOutraTransacao.addEventListener('change', () => {
         outraAporteSocioDiv.classList.toggle('hidden', tipoOutraTransacao.value !== 'aporte');
     });
@@ -116,13 +84,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const tipo = tipoOutraTransacao.value;
+        // CORREÇÃO APLICADA AQUI: Usa a data e hora do formulário
         const dataCompleta = new Date(`${outraDataInput.value}T${outraHorarioInput.value}`);
         const novaTransacao = {
             id: tipo.charAt(0).toUpperCase() + '-' + Date.now(),
             tipo: tipo,
             descricao: outraDescricaoInput.value,
             valor: parseFloat(outraValorInput.value),
-            data: dataCompleta.toISOString()
+            data: dataCompleta.toISOString() // Salva a data correta
         };
         if (tipo === 'aporte') {
             novaTransacao.socio = outraSocioSelect.value;
@@ -135,17 +104,30 @@ document.addEventListener('DOMContentLoaded', () => {
         outraAporteSocioDiv.classList.add('hidden');
     });
     
-    // --- LÓGICA DE HISTÓRICO ATUALIZADA ---
+    // --- LÓGICA DE HISTÓRICO (AGRUPADO POR DIA) ---
     const renderizarTransacoes = () => {
         transacoesBody.innerHTML = '';
         db.transacoes.sort((a, b) => new Date(b.data) - new Date(a.data));
+        
+        let ultimaDataExibida = null;
+
         db.transacoes.forEach(t => {
+            const dataAtualTransacao = formatarData(t.data);
+
+            // Se a data desta transação for diferente da última, cria um cabeçalho de dia
+            if (dataAtualTransacao !== ultimaDataExibida) {
+                const trHeader = document.createElement('tr');
+                trHeader.className = 'date-header';
+                trHeader.innerHTML = `<td colspan="6">Transações de ${dataAtualTransacao}</td>`;
+                transacoesBody.appendChild(trHeader);
+                ultimaDataExibida = dataAtualTransacao;
+            }
+
+            // Cria a linha da transação normal
             const tr = document.createElement('tr');
             let detalhes = '', valor = 0, responsavel = '';
-
             if (t.tipo === 'venda') {
-                const itensHtml = t.items.map(item => `<li>${item.quantidade}x ${item.nome}</li>`).join('');
-                detalhes = `<ul class="transacao-item-lista">${itensHtml}</ul>`;
+                detalhes = `<ul class="transacao-item-lista">${t.items.map(item => `<li>${item.quantidade}x ${item.nome}</li>`).join('')}</ul>`;
                 valor = t.total;
                 responsavel = `V: ${t.vendedor}<br><small>Pg: ${t.pagamento}</small>`;
             } else {
@@ -165,9 +147,10 @@ document.addEventListener('DOMContentLoaded', () => {
             transacoesBody.appendChild(tr);
         });
     };
-    
-    // --- O RESTANTE DO CÓDIGO PERMANECE IGUAL ---
-    // (Omitido por brevidade. Apenas a lógica de inicialização precisa ser mostrada)
+
+    // --- O RESTANTE DO CÓDIGO (sem alterações) ---
+    // (Omitido por brevidade, mas o código completo está abaixo)
+
     // ================== CÓDIGO COMPLETO DO SCRIPT.JS ==================
     const renderizarProdutos = () => {
         produtosBody.innerHTML = '';
@@ -263,6 +246,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (quantidade > produtoSelecionadoParaVenda.estoque) { alert(`Estoque insuficiente! Apenas ${produtoSelecionadoParaVenda.estoque} disponíveis.`); return; }
         carrinhoAtual.push({ id: produtoSelecionadoParaVenda.id, nome: produtoSelecionadoParaVenda.nome, preco: produtoSelecionadoParaVenda.preco, quantidade: quantidade });
         renderizarCarrinho(); produtoSelecionadoParaVenda = null; produtoBuscaInput.value = ''; quantidadeVendaInput.value = 1; produtoBuscaInput.focus();
+    });
+    finalizarVendaBtn.addEventListener('click', () => {
+        if (carrinhoAtual.length === 0) { alert('Adicione itens à venda.'); return; }
+        if (!vendedorSelectVenda.value) { alert('Selecione um vendedor.'); return; }
+        if (!vendaDataInput.value || !vendaHorarioInput.value) { alert('Selecione a data e o horário da venda.'); return; }
+        carrinhoAtual.forEach(itemCarrinho => {
+            const indexProduto = db.produtos.findIndex(p => p.id === itemCarrinho.id);
+            if (indexProduto !== -1) { db.produtos[indexProduto].estoque -= itemCarrinho.quantidade; }
+        });
+        const dataCompleta = new Date(`${vendaDataInput.value}T${vendaHorarioInput.value}`);
+        db.transacoes.push({ id: 'V-' + Date.now(), tipo: 'venda', vendedor: vendedorSelectVenda.value, pagamento: pagamentoSelect.value, total: carrinhoAtual.reduce((acc, item) => acc + (item.preco * item.quantidade), 0), data: dataCompleta.toISOString(), items: carrinhoAtual });
+        salvarDB(); carrinhoAtual = []; renderizarCarrinho(); vendedorSelectVenda.value = ''; setDateTimeAtual(vendaDataInput, vendaHorarioInput); renderizarTudo(); alert('Venda registrada com sucesso!');
     });
     transacoesBody.addEventListener('click', (e) => {
         if (e.target.classList.contains('delete-btn')) {
