@@ -27,7 +27,7 @@ th { background-color: #f8f9fa; font-weight: 600; }
 #fechamento-btn { background-color: #16a085; }
 #fechamento-btn:hover { background-color: #117a65; }
 #fechamento-resultado { margin-top: 20px; padding: 20px; background-color: #e8f6f3; border-left: 5px solid #16a085; border-radius: 5px; line-height: 1.6; }
-.venda-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+.venda-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start; } /* Adicionado align-items */
 .venda-coluna { display: flex; flex-direction: column; gap: 15px; }
 #produto-busca-resultados { border: 1px solid #ddd; border-radius: 8px; max-height: 150px; overflow-y: auto; }
 .resultado-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
@@ -51,4 +51,11 @@ th { background-color: #f8f9fa; font-weight: 600; }
 .close-btn:hover, .close-btn:focus { color: black; }
 @media (max-width: 768px) {
     .venda-grid { grid-template-columns: 1fr; }
+}
+
+/* --- Correção Definitiva para Altura dos Campos de Venda --- */
+.venda-coluna > input,
+.venda-coluna > button,
+.venda-coluna > select {
+    flex-grow: 0; /* Impede que o item cresça para preencher espaço extra */
 }
