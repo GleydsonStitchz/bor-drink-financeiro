@@ -17,10 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const salvarDB = () => { localStorage.setItem(DB_KEY, JSON.stringify(db)); };
 
     // --- SELEÇÃO DOS ELEMENTOS DO DOM ---
-    // Adicionados para o novo modal de edição
     const editTransacaoModal = document.getElementById('edit-transacao-modal');
     const editTransacaoForm = document.getElementById('edit-transacao-form');
-    // (O resto dos seletores continua o mesmo)
     const vendaHorarioInput = document.getElementById('venda-horario-input');
     const pagamentoSelect = document.getElementById('pagamento-select');
     const outraDataInput = document.getElementById('outra-data-input');
@@ -57,12 +55,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const importBtn = document.getElementById('import-btn');
     const importFileInput = document.getElementById('import-file-input');
     
-    // --- FUNÇÕES GERAIS (COM CORREÇÃO DE FUSO HORÁRIO) ---
+    // --- FUNÇÕES GERAIS ---
     const formatarMoeda = (valor) => `R$ ${valor.toFixed(2).replace('.', ',')}`;
-    const formatarData = (dataISO) => new Date(dataISO).toLocaleDateString('pt-BR', {}); // Removido timeZone: 'UTC'
+    const formatarData = (dataISO) => new Date(dataISO).toLocaleDateString('pt-BR', {});
     const formatarDataHora = (dataISO) => {
         const data = new Date(dataISO);
-        // Removido timeZone: 'UTC' para usar o fuso horário local do navegador
         const dataFormatada = data.toLocaleDateString('pt-BR', {});
         const horaFormatada = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         return `${dataFormatada} ${horaFormatada}`;
@@ -80,140 +77,77 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarTransacoes();
     };
     
-    // --- LÓGICA DE HISTÓRICO (COM BOTÃO DE EDITAR) ---
-    const renderizarTransacoes = () => {
-        transacoesBody.innerHTML = '';
-        db.transacoes.sort((a, b) => new Date(b.data) - new Date(a.data));
-        let ultimaDataExibida = null;
-        db.transacoes.forEach(t => {
-            const dataAtualTransacao = formatarData(t.data);
-            if (dataAtualTransacao !== ultimaDataExibida) {
-                const trHeader = document.createElement('tr');
-                trHeader.className = 'date-header';
-                trHeader.innerHTML = `<td colspan="6">Transações de ${dataAtualTransacao}</td>`;
-                transacoesBody.appendChild(trHeader);
-                ultimaDataExibida = dataAtualTransacao;
-            }
-            const tr = document.createElement('tr');
-            let detalhes = '', valor = 0, responsavel = '';
-            if (t.tipo === 'venda') {
-                detalhes = `<ul class="transacao-item-lista">${t.items.map(item => `<li>${item.quantidade}x ${item.nome}</li>`).join('')}</ul>`;
-                valor = t.total;
-                responsavel = `V: ${t.vendedor}<br><small>Pg: ${t.pagamento}</small>`;
-            } else {
-                detalhes = t.descricao;
-                valor = t.valor;
-                responsavel = `S: ${t.socio || 'N/A'}`;
-            }
-            tr.innerHTML = `
-                <td class="tipo-${t.tipo}">${t.tipo.charAt(0).toUpperCase() + t.tipo.slice(1)}</td>
-                <td>${detalhes}</td>
-                <td>${formatarMoeda(valor)}</td>
-                <td>${responsavel}</td>
-                <td>${formatarDataHora(t.data)}</td>
-                <td>
-                    <button class="edit-btn" data-id="${t.id}">Editar</button>
-                    <button class="delete-btn" data-id="${t.id}">Excluir</button>
-                </td>
-            `;
-            transacoesBody.appendChild(tr);
-        });
-    };
+    // --- LÓGICA DE PRODUTOS E VENDEDORES ---
+    const renderizarProdutos = () => { /* ... (código existente) ... */ };
+    produtoForm.addEventListener('submit', (e) => { /* ... (código existente) ... */ });
+    produtosBody.addEventListener('click', (e) => { /* ... (código existente) ... */ });
+    editProdutoForm.addEventListener('submit', (e) => { /* ... (código existente) ... */ });
+    const renderizarVendedores = () => { /* ... (código existente) ... */ };
+    const renderizarDropdownVendedores = () => { /* ... (código existente) ... */ };
+    vendedorForm.addEventListener('submit', (e) => { /* ... (código existente) ... */ });
+    vendedoresBody.addEventListener('click', (e) => { /* ... (código existente) ... */ });
+    editVendedorForm.addEventListener('submit', (e) => { /* ... (código existente) ... */ });
+
+    // --- LÓGICA DO CARRINHO E VENDA ---
+    produtoBuscaInput.addEventListener('input', () => { /* ... (código existente) ... */ });
+    const renderizarCarrinho = () => { /* ... (código existente) ... */ };
+    addItemCarrinhoBtn.addEventListener('click', () => { /* ... (código existente) ... */ });
+    finalizarVendaBtn.addEventListener('click', () => { /* ... (código existente) ... */ });
+
+    // --- LÓGICA PARA CUSTOS E APORTES ---
+    tipoOutraTransacao.addEventListener('change', () => { /* ... (código existente) ... */ });
+    outraTransacaoForm.addEventListener('submit', (e) => { /* ... (código existente) ... */ });
     
-    // --- NOVA LÓGICA PARA EDITAR TRANSAÇÕES ---
-    transacoesBody.addEventListener('click', (e) => {
-        if (e.target.classList.contains('delete-btn')) {
-            // Lógica de deletar (já existente)
-            const id = e.target.dataset.id;
-            if (confirm('Tem certeza que deseja excluir esta transação?')) {
-                const transacao = db.transacoes.find(t => t.id === id);
-                if (transacao && transacao.tipo === 'venda') {
-                    transacao.items.forEach(itemVendido => {
-                        const indexProduto = db.produtos.findIndex(p => p.id === itemVendido.id);
-                        if (indexProduto !== -1) { db.produtos[indexProduto].estoque += itemVendido.quantidade; }
-                    });
+    // --- LÓGICA DE HISTÓRICO E EDIÇÃO ---
+    const renderizarTransacoes = () => { /* ... (código existente) ... */ };
+    transacoesBody.addEventListener('click', (e) => { /* ... (código existente) ... */ });
+    editTransacaoForm.addEventListener('submit', (e) => { /* ... (código existente) ... */ });
+
+    // --- LÓGICA DE FECHAMENTO MENSAL ---
+    const popularFiltrosDeData = () => { /* ... (código existente) ... */ };
+    const gerarFechamento = () => { /* ... (código existente) ... */ };
+    
+    // --- LÓGICA DE IMPORTAÇÃO E EXPORTAÇÃO ---
+    const exportarDados = () => {
+        const dataStr = JSON.stringify(db);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `backup-bor-drink-pdv-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+    const importarDados = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if ('produtos' in data && 'vendedores' in data && 'transacoes' in data) {
+                    if (confirm('Isso irá substituir todos os dados atuais. Deseja continuar?')) {
+                        db = data;
+                        salvarDB();
+                        location.reload();
+                    }
+                } else {
+                    alert('Arquivo de backup inválido.');
                 }
-                db.transacoes = db.transacoes.filter(t => t.id !== id);
-                salvarDB();
-                renderizarTudo();
+            } catch (err) {
+                alert('Erro ao ler o arquivo.');
             }
-        }
-        if (e.target.classList.contains('edit-btn')) {
-            const id = e.target.dataset.id;
-            const transacao = db.transacoes.find(t => t.id === id);
-            if (!transacao) return;
+        };
+        reader.readAsText(file);
+    };
 
-            // Preenche os campos comuns
-            document.getElementById('edit-transacao-id').value = transacao.id;
-            const data = new Date(transacao.data);
-            document.getElementById('edit-transacao-data').value = data.toISOString().split('T')[0];
-            document.getElementById('edit-transacao-horario').value = data.toTimeString().slice(0, 5);
-
-            // Mostra/esconde campos baseado no tipo
-            const vendaFields = editTransacaoModal.querySelector('.edit-venda-fields');
-            const custoAporteFields = editTransacaoModal.querySelector('.edit-custo-aporte-fields');
-            const aporteFields = editTransacaoModal.querySelector('.edit-aporte-fields');
-
-            vendaFields.style.display = 'none';
-            custoAporteFields.style.display = 'none';
-            aporteFields.style.display = 'none';
-
-            if (transacao.tipo === 'venda') {
-                vendaFields.style.display = 'block';
-                const vendedorSelect = document.getElementById('edit-transacao-vendedor');
-                vendedorSelect.innerHTML = ''; // Limpa opções antigas
-                db.vendedores.forEach(v => {
-                    vendedorSelect.innerHTML += `<option value="${v.nome}">${v.nome}</option>`;
-                });
-                vendedorSelect.value = transacao.vendedor;
-                document.getElementById('edit-transacao-pagamento').value = transacao.pagamento;
-            } else if (transacao.tipo === 'custo') {
-                custoAporteFields.style.display = 'block';
-                document.getElementById('edit-transacao-descricao').value = transacao.descricao;
-                document.getElementById('edit-transacao-valor').value = transacao.valor;
-            } else if (transacao.tipo === 'aporte') {
-                custoAporteFields.style.display = 'block';
-                aporteFields.style.display = 'block';
-                document.getElementById('edit-transacao-descricao').value = transacao.descricao;
-                document.getElementById('edit-transacao-valor').value = transacao.valor;
-                document.getElementById('edit-transacao-socio').value = transacao.socio;
-            }
-
-            editTransacaoModal.style.display = 'block';
-        }
-    });
-
-    editTransacaoForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const id = document.getElementById('edit-transacao-id').value;
-        const index = db.transacoes.findIndex(t => t.id === id);
-        if (index === -1) return;
-
-        const data = document.getElementById('edit-transacao-data').value;
-        const horario = document.getElementById('edit-transacao-horario').value;
-        db.transacoes[index].data = new Date(`${data}T${horario}`).toISOString();
-
-        const tipo = db.transacoes[index].tipo;
-        if (tipo === 'venda') {
-            db.transacoes[index].vendedor = document.getElementById('edit-transacao-vendedor').value;
-            db.transacoes[index].pagamento = document.getElementById('edit-transacao-pagamento').value;
-        } else {
-            db.transacoes[index].descricao = document.getElementById('edit-transacao-descricao').value;
-            db.transacoes[index].valor = parseFloat(document.getElementById('edit-transacao-valor').value);
-            if (tipo === 'aporte') {
-                db.transacoes[index].socio = document.getElementById('edit-transacao-socio').value;
-            }
-        }
-        
-        salvarDB();
-        renderizarTudo();
-        editTransacaoModal.style.display = 'none';
-    });
-
-    // --- RESTO DO CÓDIGO (sem alterações) ---
-    // ================== CÓDIGO COMPLETO DO SCRIPT.JS ==================
-    // (Apenas as partes que não foram mostradas acima, para garantir que você tenha tudo)
-    const renderizarProdutos = () => {
+    // --- EVENT LISTENERS E INICIALIZAÇÃO GERAL ---
+    // (Omiti o conteúdo das funções para brevidade, mas o código completo está abaixo)
+    
+    // ===============================================
+    // CÓDIGO COMPLETO E FINAL PARA O SCRIPT.JS
+    // ===============================================
+    renderizarProdutos = () => {
         produtosBody.innerHTML = '';
         db.produtos.forEach(p => {
             const tr = document.createElement('tr');
@@ -242,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         db.produtos[index] = { id, codigo: document.getElementById('edit-produto-codigo').value.toUpperCase(), nome: document.getElementById('edit-produto-nome').value, preco: parseFloat(document.getElementById('edit-produto-preco').value), estoque: parseInt(document.getElementById('edit-produto-estoque').value) };
         salvarDB(); renderizarProdutos(); editProdutoModal.style.display = 'none';
     });
-    const renderizarVendedores = () => {
+    renderizarVendedores = () => {
         vendedoresBody.innerHTML = '';
         db.vendedores.forEach(v => {
             const tr = document.createElement('tr');
@@ -250,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
             vendedoresBody.appendChild(tr);
         });
     };
-    const renderizarDropdownVendedores = () => {
+    renderizarDropdownVendedores = () => {
         vendedorSelectVenda.innerHTML = '<option value="">Selecione um vendedor</option>';
         db.vendedores.forEach(v => { vendedorSelectVenda.innerHTML += `<option value="${v.nome}">${v.nome}</option>`; });
     };
@@ -287,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
             produtoBuscaResultados.appendChild(div);
         });
     });
-    const renderizarCarrinho = () => {
+    renderizarCarrinho = () => {
         carrinhoLista.innerHTML = ''; let total = 0;
         carrinhoAtual.forEach((item) => {
             const li = document.createElement('li'); const itemTotal = item.preco * item.quantidade;
@@ -316,6 +250,9 @@ document.addEventListener('DOMContentLoaded', () => {
         db.transacoes.push({ id: 'V-' + Date.now(), tipo: 'venda', vendedor: vendedorSelectVenda.value, pagamento: pagamentoSelect.value, total: carrinhoAtual.reduce((acc, item) => acc + (item.preco * item.quantidade), 0), data: dataCompleta.toISOString(), items: carrinhoAtual });
         salvarDB(); carrinhoAtual = []; renderizarCarrinho(); vendedorSelectVenda.value = ''; setDateTimeAtual(vendaDataInput, vendaHorarioInput); renderizarTudo(); alert('Venda registrada com sucesso!');
     });
+    tipoOutraTransacao.addEventListener('change', () => {
+        outraAporteSocioDiv.classList.toggle('hidden', tipoOutraTransacao.value !== 'aporte');
+    });
     outraTransacaoForm.addEventListener('submit', (e) => {
         e.preventDefault();
         if (!outraDataInput.value || !outraHorarioInput.value) { alert('Por favor, preencha a data e o horário.'); return; }
@@ -326,7 +263,109 @@ document.addEventListener('DOMContentLoaded', () => {
         db.transacoes.push(novaTransacao);
         salvarDB(); renderizarTransacoes(); outraTransacaoForm.reset(); setDateTimeAtual(outraDataInput, outraHorarioInput); outraAporteSocioDiv.classList.add('hidden');
     });
-    const popularFiltrosDeData = () => {
+    renderizarTransacoes = () => {
+        transacoesBody.innerHTML = '';
+        db.transacoes.sort((a, b) => new Date(b.data) - new Date(a.data));
+        let ultimaDataExibida = null;
+        db.transacoes.forEach(t => {
+            const dataAtualTransacao = formatarData(t.data);
+            if (dataAtualTransacao !== ultimaDataExibida) {
+                const trHeader = document.createElement('tr');
+                trHeader.className = 'date-header';
+                trHeader.innerHTML = `<td colspan="6">Transações de ${dataAtualTransacao}</td>`;
+                transacoesBody.appendChild(trHeader);
+                ultimaDataExibida = dataAtualTransacao;
+            }
+            const tr = document.createElement('tr');
+            let detalhes = '', valor = 0, responsavel = '';
+            if (t.tipo === 'venda') {
+                detalhes = `<ul class="transacao-item-lista">${t.items.map(item => `<li>${item.quantidade}x ${item.nome}</li>`).join('')}</ul>`;
+                valor = t.total;
+                responsavel = `V: ${t.vendedor}<br><small>Pg: ${t.pagamento}</small>`;
+            } else {
+                detalhes = t.descricao;
+                valor = t.valor;
+                responsavel = `S: ${t.socio || 'N/A'}`;
+            }
+            tr.innerHTML = `<td class="tipo-${t.tipo}">${t.tipo.charAt(0).toUpperCase() + t.tipo.slice(1)}</td><td>${detalhes}</td><td>${formatarMoeda(valor)}</td><td>${responsavel}</td><td>${formatarDataHora(t.data)}</td><td><button class="edit-btn" data-id="${t.id}">Editar</button><button class="delete-btn" data-id="${t.id}">Excluir</button></td>`;
+            transacoesBody.appendChild(tr);
+        });
+    };
+    transacoesBody.addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-btn')) {
+            const id = e.target.dataset.id;
+            if (confirm('Tem certeza?')) {
+                const transacao = db.transacoes.find(t => t.id === id);
+                if (transacao && transacao.tipo === 'venda') {
+                    transacao.items.forEach(itemVendido => {
+                        const indexProduto = db.produtos.findIndex(p => p.id === itemVendido.id);
+                        if (indexProduto !== -1) { db.produtos[indexProduto].estoque += itemVendido.quantidade; }
+                    });
+                }
+                db.transacoes = db.transacoes.filter(t => t.id !== id);
+                salvarDB();
+                renderizarTudo();
+            }
+        }
+        if (e.target.classList.contains('edit-btn')) {
+            const id = e.target.dataset.id;
+            const transacao = db.transacoes.find(t => t.id === id);
+            if (!transacao) return;
+            document.getElementById('edit-transacao-id').value = transacao.id;
+            const data = new Date(transacao.data);
+            document.getElementById('edit-transacao-data').value = data.toISOString().split('T')[0];
+            document.getElementById('edit-transacao-horario').value = data.toTimeString().slice(0, 5);
+            const vendaFields = editTransacaoModal.querySelector('.edit-venda-fields');
+            const custoAporteFields = editTransacaoModal.querySelector('.edit-custo-aporte-fields');
+            const aporteFields = editTransacaoModal.querySelector('.edit-aporte-fields');
+            vendaFields.style.display = 'none';
+            custoAporteFields.style.display = 'none';
+            aporteFields.style.display = 'none';
+            if (transacao.tipo === 'venda') {
+                vendaFields.style.display = 'block';
+                const vendedorSelect = document.getElementById('edit-transacao-vendedor');
+                vendedorSelect.innerHTML = '';
+                db.vendedores.forEach(v => { vendedorSelect.innerHTML += `<option value="${v.nome}">${v.nome}</option>`; });
+                vendedorSelect.value = transacao.vendedor;
+                document.getElementById('edit-transacao-pagamento').value = transacao.pagamento;
+            } else if (transacao.tipo === 'custo') {
+                custoAporteFields.style.display = 'block';
+                document.getElementById('edit-transacao-descricao').value = transacao.descricao;
+                document.getElementById('edit-transacao-valor').value = transacao.valor;
+            } else if (transacao.tipo === 'aporte') {
+                custoAporteFields.style.display = 'block';
+                aporteFields.style.display = 'block';
+                document.getElementById('edit-transacao-descricao').value = transacao.descricao;
+                document.getElementById('edit-transacao-valor').value = transacao.valor;
+                document.getElementById('edit-transacao-socio').value = transacao.socio;
+            }
+            editTransacaoModal.style.display = 'block';
+        }
+    });
+    editTransacaoForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-transacao-id').value;
+        const index = db.transacoes.findIndex(t => t.id === id);
+        if (index === -1) return;
+        const data = document.getElementById('edit-transacao-data').value;
+        const horario = document.getElementById('edit-transacao-horario').value;
+        db.transacoes[index].data = new Date(`${data}T${horario}`).toISOString();
+        const tipo = db.transacoes[index].tipo;
+        if (tipo === 'venda') {
+            db.transacoes[index].vendedor = document.getElementById('edit-transacao-vendedor').value;
+            db.transacoes[index].pagamento = document.getElementById('edit-transacao-pagamento').value;
+        } else {
+            db.transacoes[index].descricao = document.getElementById('edit-transacao-descricao').value;
+            db.transacoes[index].valor = parseFloat(document.getElementById('edit-transacao-valor').value);
+            if (tipo === 'aporte') {
+                db.transacoes[index].socio = document.getElementById('edit-transacao-socio').value;
+            }
+        }
+        salvarDB();
+        renderizarTudo();
+        editTransacaoModal.style.display = 'none';
+    });
+    popularFiltrosDeData = () => {
         const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
         meses.forEach((mes, index) => { mesSelect.innerHTML += `<option value="${index}">${mes}</option>`; });
         const anoAtual = new Date().getFullYear();
@@ -334,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mesSelect.value = new Date().getMonth();
         anoSelect.value = anoAtual;
     };
-    const gerarFechamento = () => {
+    gerarFechamento = () => {
         const mes = parseInt(mesSelect.value);
         const ano = parseInt(anoSelect.value);
         const transacoesDoMes = db.transacoes.filter(t => { const data = new Date(t.data); return data.getMonth() === mes && data.getFullYear() === ano; });
@@ -361,25 +400,9 @@ document.addEventListener('DOMContentLoaded', () => {
             editProdutoModal.style.display = 'none'; editVendedorModal.style.display = 'none'; editTransacaoModal.style.display = 'none';
         }
     }
-    exportBtn.addEventListener('click', () => {
-        const dataStr = JSON.stringify(db); const blob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = `backup-bor-drink-pdv-${new Date().toISOString().split('T')[0]}.json`;
-        a.click(); URL.revokeObjectURL(url);
-    });
-    importFileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-                if ('produtos' in data && 'vendedores' in data && 'transacoes' in data) {
-                    if (confirm('Isso irá substituir todos os dados. Deseja continuar?')) { db = data; salvarDB(); location.reload(); }
-                } else { alert('Arquivo de backup inválido.'); }
-            } catch (err) { alert('Erro ao ler o arquivo.'); }
-        };
-        reader.readAsText(file);
-    });
     importBtn.addEventListener('click', () => importFileInput.click());
+    exportBtn.addEventListener('click', exportarDados);
+    importFileInput.addEventListener('change', importarDados);
     
     carregarDB();
     renderizarTudo();
