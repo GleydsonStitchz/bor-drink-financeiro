@@ -276,4 +276,143 @@ document.addEventListener('DOMContentLoaded', () => {
             const tr = document.createElement('tr');
             let detalhes = '', valor = 0, responsavel = '';
             if (t.tipo === 'venda') {
-                detalhes = `
+                detalhes = `<ul class="transacao-item-lista">${t.items.map(item => `<li>${item.quantidade}x ${item.nome}</li>`).join('')}</ul>`;
+                valor = t.total;
+                responsavel = `V: ${t.vendedor}<br><small>Pg: ${t.pagamento}</small>`;
+            } else {
+                detalhes = t.descricao;
+                valor = t.valor;
+                responsavel = `S: ${t.socio || 'N/A'}`;
+            }
+            tr.innerHTML = `<td class="tipo-${t.tipo}">${t.tipo.charAt(0).toUpperCase() + t.tipo.slice(1)}</td><td>${detalhes}</td><td>${formatarMoeda(valor)}</td><td>${responsavel}</td><td>${formatarDataHora(t.data)}</td><td><button class="edit-btn" data-id="${t.id}">Editar</button><button class="delete-btn" data-id="${t.id}">Excluir</button></td>`;
+            transacoesBody.appendChild(tr);
+        });
+    };
+    transacoesBody.addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-btn')) {
+            const id = e.target.dataset.id;
+            if (confirm('Tem certeza?')) {
+                const transacao = db.transacoes.find(t => t.id === id);
+                if (transacao && transacao.tipo === 'venda') {
+                    transacao.items.forEach(itemVendido => {
+                        const indexProduto = db.produtos.findIndex(p => p.id === itemVendido.id);
+                        if (indexProduto !== -1) { db.produtos[indexProduto].estoque += itemVendido.quantidade; }
+                    });
+                }
+                db.transacoes = db.transacoes.filter(t => t.id !== id);
+                salvarDB();
+                renderizarTudo();
+            }
+        }
+        if (e.target.classList.contains('edit-btn')) {
+            const id = e.target.dataset.id;
+            const transacao = db.transacoes.find(t => t.id === id);
+            if (!transacao) return;
+            document.getElementById('edit-transacao-id').value = transacao.id;
+            const data = new Date(transacao.data);
+            document.getElementById('edit-transacao-data').value = data.toISOString().split('T')[0];
+            document.getElementById('edit-transacao-horario').value = data.toTimeString().slice(0, 5);
+            const vendaFields = editTransacaoModal.querySelector('.edit-venda-fields');
+            const custoAporteFields = editTransacaoModal.querySelector('.edit-custo-aporte-fields');
+            const aporteFields = editTransacaoModal.querySelector('.edit-aporte-fields');
+            vendaFields.style.display = 'none';
+            custoAporteFields.style.display = 'none';
+            aporteFields.style.display = 'none';
+            if (transacao.tipo === 'venda') {
+                vendaFields.style.display = 'block';
+                const vendedorSelect = document.getElementById('edit-transacao-vendedor');
+                vendedorSelect.innerHTML = '';
+                db.vendedores.forEach(v => { vendedorSelect.innerHTML += `<option value="${v.nome}">${v.nome}</option>`; });
+                vendedorSelect.value = transacao.vendedor;
+                document.getElementById('edit-transacao-pagamento').value = transacao.pagamento;
+            } else if (transacao.tipo === 'custo') {
+                custoAporteFields.style.display = 'block';
+                document.getElementById('edit-transacao-descricao').value = transacao.descricao;
+                document.getElementById('edit-transacao-valor').value = transacao.valor;
+            } else if (transacao.tipo === 'aporte') {
+                custoAporteFields.style.display = 'block';
+                aporteFields.style.display = 'block';
+                document.getElementById('edit-transacao-descricao').value = transacao.descricao;
+                document.getElementById('edit-transacao-valor').value = transacao.valor;
+                document.getElementById('edit-transacao-socio').value = transacao.socio;
+            }
+            editTransacaoModal.style.display = 'block';
+        }
+    });
+    editTransacaoForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-transacao-id').value;
+        const index = db.transacoes.findIndex(t => t.id === id);
+        if (index === -1) return;
+        const data = document.getElementById('edit-transacao-data').value;
+        const horario = document.getElementById('edit-transacao-horario').value;
+        db.transacoes[index].data = new Date(`${data}T${horario}`).toISOString();
+        const tipo = db.transacoes[index].tipo;
+        if (tipo === 'venda') {
+            db.transacoes[index].vendedor = document.getElementById('edit-transacao-vendedor').value;
+            db.transacoes[index].pagamento = document.getElementById('edit-transacao-pagamento').value;
+        } else {
+            db.transacoes[index].descricao = document.getElementById('edit-transacao-descricao').value;
+            db.transacoes[index].valor = parseFloat(document.getElementById('edit-transacao-valor').value);
+            if (tipo === 'aporte') {
+                db.transacoes[index].socio = document.getElementById('edit-transacao-socio').value;
+            }
+        }
+        salvarDB();
+        renderizarTudo();
+        editTransacaoModal.style.display = 'none';
+    });
+    popularFiltrosDeData = () => {
+        const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+        meses.forEach((mes, index) => { mesSelect.innerHTML += `<option value="${index}">${mes}</option>`; });
+        const anoAtual = new Date().getFullYear();
+        for (let ano = anoAtual; ano >= 2022; ano--) { anoSelect.innerHTML += `<option value="${ano}">${ano}</option>`; }
+        mesSelect.value = new Date().getMonth();
+        anoSelect.value = anoAtual;
+    };
+    gerarFechamento = () => {
+        const mes = parseInt(mesSelect.value);
+        const ano = parseInt(anoSelect.value);
+        const transacoesDoMes = db.transacoes.filter(t => { const data = new Date(t.data); return data.getMonth() === mes && data.getFullYear() === ano; });
+        const faturamento = transacoesDoMes.filter(t => t.tipo === 'venda').reduce((acc, t) => acc + t.total, 0);
+        const custos = transacoesDoMes.filter(t => t.tipo === 'custo').reduce((acc, t) => acc + t.valor, 0);
+        const lucroBruto = faturamento - custos;
+        const dataFimDoMes = new Date(ano, mes + 1, 0);
+        const aportesAteOMes = db.transacoes.filter(t => t.tipo === 'aporte' && new Date(t.data) <= dataFimDoMes);
+        const totalInvestidoEu = aportesAteOMes.filter(t => t.socio === 'Eu').reduce((acc, t) => acc + t.valor, 0);
+        const totalInvestidoVovo = aportesAteOMes.filter(t => t.socio === 'Vovó').reduce((acc, t) => acc + t.valor, 0);
+        const capitalTotal = totalInvestidoEu + totalInvestidoVovo;
+        const participacaoEu = capitalTotal > 0 ? (totalInvestidoEu / capitalTotal) : 0;
+        const participacaoVovo = capitalTotal > 0 ? (totalInvestidoVovo / capitalTotal) : 0;
+        const lucroEu = lucroBruto > 0 ? lucroBruto * participacaoEu : 0;
+        const lucroVovo = lucroBruto > 0 ? lucroBruto * participacaoVovo : 0;
+        fechamentoResultado.innerHTML = `<h3>Fechamento de ${mesSelect.options[mesSelect.selectedIndex].text} de ${ano}</h3><p><strong>Faturamento Total (Vendas):</strong> ${formatarMoeda(faturamento)}</p><p><strong>Custos Totais (Despesas):</strong> ${formatarMoeda(custos)}</p><hr><p><strong>Lucro/Prejuízo do Mês:</strong> <strong class="${lucroBruto >= 0 ? 'tipo-venda' : 'tipo-custo'}">${formatarMoeda(lucroBruto)}</strong></p><hr><h4>Divisão do Lucro Baseada no Capital Investido:</h4><p>Sua Participação (${(participacaoEu * 100).toFixed(2)}%): <strong>${formatarMoeda(lucroEu)}</strong></p><p>Participação da Vovó (${(participacaoVovo * 100).toFixed(2)}%): <strong>${formatarMoeda(lucroVovo)}</strong></p>`;
+    };
+
+    // --- EVENT LISTENERS FINAIS ---
+    fechamentoBtn.addEventListener('click', gerarFechamento);
+    document.querySelectorAll('.close-btn').forEach(btn => {
+        btn.onclick = () => {
+            editProdutoModal.style.display = 'none';
+            editVendedorModal.style.display = 'none';
+            editTransacaoModal.style.display = 'none';
+        }
+    });
+    window.onclick = (event) => {
+        if (event.target == editProdutoModal || event.target == editVendedorModal || event.target == editTransacaoModal) {
+            editProdutoModal.style.display = 'none';
+            editVendedorModal.style.display = 'none';
+            editTransacaoModal.style.display = 'none';
+        }
+    }
+    exportBtn.addEventListener('click', exportarDados);
+    importBtn.addEventListener('click', () => importFileInput.click());
+    importFileInput.addEventListener('change', importarDados);
+    
+    // --- INICIALIZAÇÃO GERAL ---
+    carregarDB();
+    renderizarTudo();
+    popularFiltrosDeData();
+    setDateTimeAtual(vendaDataInput, vendaHorarioInput);
+    setDateTimeAtual(outraDataInput, outraHorarioInput);
+});
