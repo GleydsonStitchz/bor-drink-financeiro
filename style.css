@@ -52,8 +52,7 @@ th { background-color: #f8f9fa; font-weight: 600; }
     .venda-grid { grid-template-columns: 1fr; }
 }
 .input-group-datetime { display: flex; gap: 10px; }
-.full-width { flex-basis: 100%; } /* Garante que o elemento ocupe a linha toda no formulário */
-
+.full-width { flex-basis: 100%; }
 #produto-form, #vendedor-form, #outra-transacao-form {
     display: flex;
     flex-wrap: wrap;
@@ -62,4 +61,16 @@ th { background-color: #f8f9fa; font-weight: 600; }
 }
 .venda-coluna > * {
     flex-shrink: 0;
+}
+
+/* --- ESTILO PARA OS CABEÇALHOS DE DATA NO HISTÓRICO --- */
+.date-header td {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    color: #343a40;
+    text-align: center;
+    padding-top: 15px;
+    padding-bottom: 5px;
+    border-top: 2px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
 }
