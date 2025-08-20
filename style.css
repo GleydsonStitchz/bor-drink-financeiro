@@ -2,7 +2,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helve
 .container { max-width: 900px; margin: 0 auto; padding: 10px; }
 h1, h2, h3 { text-align: center; color: #1c2e4a; }
 .card { background-color: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07); margin-bottom: 25px; }
-/* Removida a regra 'form' genérica daqui */
 input, select, button {
     width: 100%;
     padding: 12px;
@@ -52,18 +51,15 @@ th { background-color: #f8f9fa; font-weight: 600; }
 @media (max-width: 768px) {
     .venda-grid { grid-template-columns: 1fr; }
 }
+.input-group-datetime { display: flex; gap: 10px; }
+.full-width { flex-basis: 100%; } /* Garante que o elemento ocupe a linha toda no formulário */
 
-/* --- Correção de Layout para Formulários e Seção de Vendas --- */
-
-/* Aplica o comportamento flexível APENAS aos formulários de gerenciamento */
 #produto-form, #vendedor-form, #outra-transacao-form {
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
     margin-bottom: 20px;
 }
-
-/* Garante que os itens dentro da coluna de vendas não se estiquem verticalmente */
 .venda-coluna > * {
-    flex-shrink: 0; /* Impede o encolhimento/esticamento dos itens */
+    flex-shrink: 0;
 }
